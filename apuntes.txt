@@ -1,0 +1,17 @@
+1. Node.js
+    Es la base de todo. Es el entorno que permite ejecutar javascript fuera del navegador (en el servidor).
+    Es el edificio y la cocina
+
+2. Express
+    Es un framework para Node.js que facilita la creación de servidores web. Se envarga de las rutas y escuchar las peticiones
+    Es el camarero. El cliente (navegador) llega y pide algo (peticion HTTP)
+    Express ve que pide (la ruta) y se la comunica a la cocina.
+
+3. MongoDB
+    Es la BD. Es NoSQL, por lo que la info se guarda en documentos (como json), en vez de tablas y filas.
+    Es muy flexible.
+
+4. Mongoose
+    Libreria ODM. Ayuda a interactuar con MongoDB desde Node.js
+    Aunque MongoDB sea muy flexible, mongoose es lo que nos define las reglas. Define esquemas para asegurar que
+        los datos sean coherentes.
