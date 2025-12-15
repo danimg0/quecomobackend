@@ -90,10 +90,16 @@ export const getFavoritesRecipes = async (
     if (!currentUserId) {
       return res.status(400).json({ message: "User Id missing" });
     }
+    const userWithFavorites = await getUserAndFavoritesRecipes(currentUserId);
 
-    const favoritesRecipes = await getUserAndFavoritesRecipes(currentUserId);
+    // 1. PROTECCIÓN CONTRA CRASH: Verificar si el usuario existe
+    if (!userWithFavorites) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    return res.status(200).json(favoritesRecipes.favorites);
+    // 2. Devuelves solo el array poblado
+    // Usa optional chaining (?.) por seguridad extra si favorites fuera undefined
+    return res.status(200).json(userWithFavorites.favorites || []);
   } catch (error) {
     console.log(error);
     return res.sendStatus(400);

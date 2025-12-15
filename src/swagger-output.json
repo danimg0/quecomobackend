@@ -1,0 +1,482 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "QueComo API",
+    "description": "API de recetas caseras.",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Registrar nuevo usuario",
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Datos del registro",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RegisterUser"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Iniciar sesión",
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Credenciales",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LoginUser"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Listar todos los usuarios",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "delete": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Borrar usuario",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Actualizar datos de usuario",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/user/favs": {
+      "get": {
+        "tags": [
+          "Usuarios - Favoritos"
+        ],
+        "summary": "Ver mis recetas favoritas",
+        "description": "Requiere estar logueado (Cookie).",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/user/fav/{recipeId}": {
+      "patch": {
+        "tags": [
+          "Usuarios - Favoritos"
+        ],
+        "summary": "Dar Like/Dislike a una receta",
+        "description": "Añade o quita la receta de favoritos.",
+        "parameters": [
+          {
+            "name": "recipeId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/recipes": {
+      "post": {
+        "tags": [
+          "Recetas"
+        ],
+        "summary": "Publicar nueva receta",
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Datos de la receta",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AddRecipe"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Recetas"
+        ],
+        "summary": "Obtener todas las recetas",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/recipes/search": {
+      "get": {
+        "tags": [
+          "Recetas"
+        ],
+        "summary": "Buscador avanzado",
+        "description": "Filtra por título (parcial) o duración.",
+        "parameters": [
+          {
+            "name": "title",
+            "description": "Texto a buscar",
+            "type": "string",
+            "in": "query"
+          },
+          {
+            "name": "duration",
+            "description": "Duración exacta",
+            "type": "number",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/recipes/category/{categoryId}": {
+      "get": {
+        "tags": [
+          "Recetas"
+        ],
+        "summary": "Recetas por Categoría",
+        "description": "",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID de la categoría"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/ingredients": {
+      "get": {
+        "tags": [
+          "Ingredientes"
+        ],
+        "summary": "Listar todos los ingredientes",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Ingredientes"
+        ],
+        "summary": "Crear un ingrediente nuevo",
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AddIngredient"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "Dani"
+        },
+        "email": {
+          "type": "string",
+          "example": "dani@test.com"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "example": "https://..."
+        }
+      }
+    },
+    "LoginUser": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "dani@test.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "secret123"
+        }
+      },
+      "required": [
+        "email",
+        "password"
+      ]
+    },
+    "RegisterUser": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "Dani"
+        },
+        "email": {
+          "type": "string",
+          "example": "dani@test.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "secret123"
+        }
+      },
+      "required": [
+        "username",
+        "email",
+        "password"
+      ]
+    },
+    "AddIngredient": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Tomate"
+        },
+        "imageUrl": {
+          "type": "string",
+          "example": "https://..."
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "AddRecipe": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "Tortilla de Patatas"
+        },
+        "description": {
+          "type": "string",
+          "example": "La mejor del mundo"
+        },
+        "duration": {
+          "type": "number",
+          "example": 30
+        },
+        "imageUrl": {
+          "type": "string",
+          "example": "https://..."
+        },
+        "steps": {
+          "type": "array",
+          "example": [
+            "Pelar",
+            "Freír",
+            "Cuajar"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "difficulty": {
+          "type": "string",
+          "example": "MEDIUM"
+        },
+        "ingredients": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ingredient": {
+                "type": "string",
+                "example": "mongo_id_tomate"
+              },
+              "quantity": {
+                "type": "number",
+                "example": 2
+              },
+              "unit": {
+                "type": "string",
+                "example": "gr"
+              }
+            }
+          }
+        },
+        "categories": {
+          "type": "array",
+          "example": [
+            "mongo_id_categoria"
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "title",
+        "description",
+        "duration",
+        "imageUrl",
+        "steps",
+        "difficulty",
+        "ingredients",
+        "categories"
+      ]
+    }
+  }
+}

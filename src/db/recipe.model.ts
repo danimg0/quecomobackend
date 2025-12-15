@@ -44,10 +44,16 @@ export const createRecipe = (values: Record<string, any>) => {
 };
 
 //GET Todas las recetas
-export const getRecipes = () =>
+export const getRecipes = (limit: number = 10, page: number = 0) =>
   //ingredients entra en el array de ingredientes de la receta
   //.ingredient --> dentro de cada objketo del array, busca el campo ingredient y lo rellena
-  RecipeModel.find().populate("ingredients.ingredient", "_id name owner");
+  RecipeModel.find()
+    .skip(page * limit) //salta las anteriores
+    .limit(limit) // coge solo 10
+    .populate("ingredients.ingredient", "_id name owner");
+
+export const getRecipeById = (id: string) =>
+  RecipeModel.findById(id).populate("ingredients.ingredient", "_id name owner");
 
 // GET recetas filtradas
 export const getRecipesByFilters = (
@@ -64,9 +70,13 @@ export const getRecipesByFilters = (
 };
 
 // GET recetas categoria
-export const getRecipesByCategory = (id: string) => {
-  return RecipeModel.find({ categories: id }).populate(
-    "ingredients.ingredient",
-    "_id name"
-  );
+export const getRecipesByCategory = (
+  id: string,
+  page: number = 0,
+  limit: number = 10
+) => {
+  return RecipeModel.find({ categories: id })
+    .skip(page * limit)
+    .limit(limit)
+    .populate("ingredients.ingredient", "_id name");
 };

@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createRecipe,
+  getRecipeById,
   getRecipes,
   getRecipesByCategory,
   getRecipesByFilters,
@@ -11,9 +12,15 @@ export const getAllRecipes = async (
   res: express.Response
 ) => {
   try {
-    console.log("Peticion entrante en getAllRecipes");
-    const recipes = await getRecipes();
-    console.log("Controlador: Recetas encontradas:", recipes.length);
+    const limit = Number(req.query.limit) || 5;
+    const page = Number(req.query.page) || 0;
+
+    const recipes = await getRecipes(limit, page);
+
+    console.log(
+      `Petición Pagina: ${page} | Recetas encontradas: ${recipes.length}`
+    );
+
     return res.status(200).json(recipes).end();
   } catch (error) {
     console.log(error);
@@ -87,10 +94,34 @@ export const getRecipesFromCategory = async (
 ) => {
   try {
     const { id: categoryId } = req.params;
+    const limit = Number(req.query.limit) || 5;
+    const page = Number(req.query.page) || 0;
 
-    const recipes = await getRecipesByCategory(categoryId);
+    const recipes = await getRecipesByCategory(categoryId, page, limit);
+
+    console.log(recipes);
 
     return res.status(200).send(recipes);
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(400);
+  }
+};
+
+export const getRecipeByIdC = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) res.status(400).json({ message: "Id missing" });
+
+    const recipe = await getRecipeById(id);
+
+    if (!recipe) res.status(400).json({ message: "Recipe dont founded" });
+
+    return res.status(200).json(recipe);
   } catch (error) {
     console.log(error);
     return res.sendStatus(400);
