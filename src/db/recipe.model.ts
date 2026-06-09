@@ -56,15 +56,23 @@ export const getRecipeById = (id: string) =>
   RecipeModel.findById(id).populate("ingredients.ingredient", "_id name owner");
 
 // GET recetas filtradas
-export const getRecipesByFilters = (
-  title?: string,
-  duration?: number
-  // difficulty?: Difficulty
-) => {
+export const getRecipesByFilters = (filters: {
+  title?: string;
+  minDuration?: number;
+  maxDuration?: number;
+  difficulty?: string;
+}) => {
   const query: any = {};
   // El options hace que sea case insensitive
-  if (title) query.title = { $regex: title, $options: "i" };
-  if (duration) query.duration = duration;
+  if (filters.title) query.title = { $regex: filters.title, $options: "i" };
+  if (filters.difficulty) query.difficulty = filters.difficulty;
+
+  // Rango de duración (minutos)
+  if (filters.minDuration || filters.maxDuration) {
+    query.duration = {};
+    if (filters.minDuration) query.duration.$gte = filters.minDuration;
+    if (filters.maxDuration) query.duration.$lte = filters.maxDuration;
+  }
 
   return RecipeModel.find(query).populate("ingredients.ingredient");
 };

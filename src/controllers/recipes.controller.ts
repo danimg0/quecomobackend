@@ -72,12 +72,14 @@ export const getFilteredRecipes = async (
   res: express.Response
 ) => {
   try {
-    const { title, duration } = req.query;
+    const { title, minDuration, maxDuration, difficulty } = req.query;
 
-    const filteredRecipes = await getRecipesByFilters(
-      title as string, //Si hago String(title) y title es undefined, mandara "undefined", pero con as string, no.
-      duration ? Number(duration) : undefined
-    );
+    const filteredRecipes = await getRecipesByFilters({
+      title: title as string, //Si hago String(title) y title es undefined, mandara "undefined", pero con as string, no.
+      minDuration: minDuration ? Number(minDuration) : undefined,
+      maxDuration: maxDuration ? Number(maxDuration) : undefined,
+      difficulty: difficulty as string,
+    });
 
     return res.status(200).json(filteredRecipes).end();
   } catch (error) {
