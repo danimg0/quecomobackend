@@ -47,7 +47,10 @@ export const createUser = (values: Record<string, any>) => {
 };
 export const deleteUserById = (id: string) => UserModel.deleteOne({ id });
 export const getUserAndFavoritesRecipes = (id: string) =>
-  UserModel.findById(id).populate("favorites");
+  UserModel.findById(id).populate({
+    path: "favorites",
+    populate: { path: "ingredients.ingredient", select: "_id name" },
+  });
 /**
  * Add recipe to favorites
  * @param recipeId
