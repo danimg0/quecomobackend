@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  deleteMyAccount,
   deleteUser,
   getAllUsers,
   getFavoritesRecipes,
@@ -9,6 +10,14 @@ import {
 import { isAuthenticated, isOwner } from "../middlewares";
 
 export default (router: express.Router) => {
+  // Borrar la propia cuenta (requiere estar logueado)
+  router.delete("/user", isAuthenticated, (req, res) => {
+    // #swagger.tags = ['Usuarios']
+    // #swagger.summary = 'Eliminar mi cuenta'
+    // #swagger.description = 'Borra la cuenta del usuario autenticado.'
+    deleteMyAccount(req, res);
+  });
+
   router.get(
     "/users",
     /* isAuthenticated, */ (req, res) => {

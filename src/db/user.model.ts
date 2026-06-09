@@ -45,7 +45,7 @@ export const createUser = (values: Record<string, any>) => {
   const user = new UserModel(values).save().then((user) => user.toObject());
   return user;
 };
-export const deleteUserById = (id: string) => UserModel.deleteOne({ id });
+export const deleteUserById = (id: string) => UserModel.findByIdAndDelete(id);
 export const getUserAndFavoritesRecipes = (id: string) =>
   UserModel.findById(id).populate({
     path: "favorites",

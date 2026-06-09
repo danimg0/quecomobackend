@@ -75,6 +75,31 @@ export const deleteUser = async (
   }
 };
 
+// Borra la cuenta del usuario autenticado (el id viene del token, no de la URL)
+export const deleteMyAccount = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const currentUserId = get(req, "identity._id") as string;
+
+    if (!currentUserId) {
+      return res.status(403).json({ message: "Not authenticated" });
+    }
+
+    const deleted = await deleteUserById(currentUserId);
+
+    if (!deleted) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ message: "Account deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(400);
+  }
+};
+
 export const getFavoritesRecipes = async (
   req: express.Request,
   res: express.Response
