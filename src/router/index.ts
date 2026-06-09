@@ -4,6 +4,7 @@ import users from "./users.routes";
 import recipes from "./recipes.routes";
 import ingredient from "./ingredients.routes";
 import category from "./category.routes";
+import legal from "./legal.routes";
 
 // La libreta de rutas de express
 const router = express.Router();
@@ -15,6 +16,7 @@ export default (): express.Router => {
   recipes(router);
   ingredient(router);
   category(router);
+  legal(router);
   // Se regresan las rutas
   return router;
 };
