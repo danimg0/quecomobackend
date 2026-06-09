@@ -5,9 +5,14 @@
   "license": "ISC",
   "author": "",
   "type": "commonjs",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "start": "nodemon",
+    "dev": "nodemon",
+    "build": "tsc && cp src/swagger-output.json dist/swagger-output.json",
+    "start": "node dist/index.js",
     "swagger": "ts-node src/scripts/swagger.ts",
     "seed": "ts-node src/scripts/seed.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
