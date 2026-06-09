@@ -37,7 +37,11 @@ export const isAuthenticated = async (
   next: express.NextFunction
 ) => {
   try {
-    const sessionToken = req.cookies["QUECOMO-AUTH"];
+    // Leemos el token del header: "Authorization: Bearer <token>"
+    const authHeader = req.headers.authorization;
+    const sessionToken = authHeader?.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : undefined;
 
     if (!sessionToken) {
       return res.sendStatus(403);

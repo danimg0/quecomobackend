@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import http from "http";
 import bodyParser from "body-parser";
@@ -19,8 +20,12 @@ app.use(bodyParser.json()); // Dice: "Si me llegan datos, asume que son JSON y t
 
 const server = http.createServer(app);
 
-const MONGO_URL =
-  "mongodb+srv://daniel:0xiuuNobm5pfbIu9@quecomo.fz29y02.mongodb.net/?appName=quecomo";
+const MONGO_URL = process.env.MONGO_URL;
+const PORT = Number(process.env.PORT) || 8080;
+
+if (!MONGO_URL) {
+  throw new Error("Falta MONGO_URL en el archivo .env");
+}
 
 // Mongoose se conecta a la base de datos
 // mongoose.Promise = Promise; en mongoose v5 en adelante no es necesario
@@ -31,6 +36,6 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use("/", router());
 
-server.listen(8080, () => {
-  console.log("Server running on port 8080");
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

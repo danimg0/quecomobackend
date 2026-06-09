@@ -1,8 +1,8 @@
 //Herramienta de node
 import crypto from "crypto";
-//Llave que solo conoce el servidor.
-//TODO  Guardar en el .env mas adelante.
-const SECRET = "mi_secreto_12345";
+//Llave que solo conoce el servidor. Se lee del .env.
+// El fallback debe coincidir con el valor original para no invalidar los passwords ya guardados.
+const SECRET = process.env.SECRET || "mi_secreto_12345";
 
 // Funcion para crear un salt (cadena unica por usuario) o el session token
 export const random = () => {

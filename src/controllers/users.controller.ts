@@ -112,7 +112,7 @@ export const toggleFavoriteRecipe = async (
 ) => {
   try {
     const currentUserId = get(req, "identity._id") as string;
-    const { id: recipeId } = req.params;
+    const { recipeId } = req.params;
 
     if (!currentUserId)
       return res.status(400).json({ message: "User Id missing" });
