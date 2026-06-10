@@ -1,0 +1,19 @@
+{
+  "_instrucciones": "Pega aqui el enlace (URL) de cada foto. Deja vacio (\"\") las que aun no tengas y NO se tocaran. Cuando termines, ejecuta: npm run update-images",
+  "recipes": {
+    "Lentejas Estofadas": "https://loremflickr.com/600/400/lentils,stew?lock=1",
+    "Tortilla de Patatas": "https://loremflickr.com/600/400/potato,omelette?lock=2",
+    "Macarrones con Tomate y Chorizo": "https://loremflickr.com/600/400/pasta,tomato?lock=3",
+    "Pechuga de Pollo al Ajillo": "https://loremflickr.com/600/400/chicken,garlic?lock=4",
+    "Arroz a la Cubana": "https://loremflickr.com/600/400/rice,fried,egg?lock=5",
+    "Ensalada Mixta Completa": "https://loremflickr.com/600/400/salad,vegetables?lock=6",
+    "Garbanzos con Espinacas (Potaje)": "https://loremflickr.com/600/400/chickpeas,spinach?lock=7",
+    "Revuelto de Huevos con Jamón": "https://loremflickr.com/600/400/scrambled,eggs?lock=8",
+    "Pastel de Carne y Patata": "https://loremflickr.com/600/400/shepherds,pie?lock=9",
+    "Merluza (o Pescado) en Salsa Verde": "https://loremflickr.com/600/400/fish,fillet?lock=10"
+  },
+  "categories": {
+    "Almuerzo": "https://loremflickr.com/600/400/lunch,food?lock=11",
+    "Cena": "https://loremflickr.com/600/400/dinner,food?lock=12"
+  }
+}

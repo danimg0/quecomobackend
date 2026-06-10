@@ -2,33 +2,12 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import { RecipeModel } from "../db/recipe.model";
 import { CategoryModel } from "../db/category.model";
+import imagesConfig from "./recipe-images.json";
 
-// Actualiza SOLO las imágenes de recetas y categorías existentes.
-// NO borra usuarios ni favoritos (a diferencia del seed).
-// Usa loremflickr: fotos reales por palabra clave, fijadas con ?lock para que no cambien.
-
-const img = (keywords: string, lock: number) =>
-  `https://loremflickr.com/600/400/${keywords}?lock=${lock}`;
-
-// Mapa título de receta -> foto real relacionada
-const recipeImages: Record<string, string> = {
-  "Lentejas Estofadas": img("lentils,stew", 1),
-  "Tortilla de Patatas": img("potato,omelette", 2),
-  "Macarrones con Tomate y Chorizo": img("pasta,tomato", 3),
-  "Pechuga de Pollo al Ajillo": img("chicken,garlic", 4),
-  "Arroz a la Cubana": img("rice,fried,egg", 5),
-  "Ensalada Mixta Completa": img("salad,vegetables", 6),
-  "Garbanzos con Espinacas (Potaje)": img("chickpeas,spinach", 7),
-  "Revuelto de Huevos con Jamón": img("scrambled,eggs", 8),
-  "Pastel de Carne y Patata": img("shepherds,pie", 9),
-  "Merluza (o Pescado) en Salsa Verde": img("fish,fillet", 10),
-};
-
-// Mapa nombre de categoría -> foto real
-const categoryImages: Record<string, string> = {
-  Almuerzo: img("lunch,food", 11),
-  Cena: img("dinner,food", 12),
-};
+// Actualiza las imágenes de recetas y categorías leyendo recipe-images.json.
+// Pega la URL de cada foto en ese archivo y ejecuta: npm run update-images
+// Las entradas vacías ("") se ignoran (no se tocan), para ir añadiendo poco a poco.
+// NO borra usuarios ni favoritos.
 
 const run = async () => {
   const MONGO_URL = process.env.MONGO_URL;
@@ -41,8 +20,14 @@ const run = async () => {
   await mongoose.connect(MONGO_URL);
 
   let updated = 0;
+  let skipped = 0;
 
-  for (const [title, imageUrl] of Object.entries(recipeImages)) {
+  // Recetas
+  for (const [title, imageUrl] of Object.entries(imagesConfig.recipes)) {
+    if (!imageUrl || !imageUrl.trim()) {
+      skipped++;
+      continue; // sin URL todavía -> no tocar
+    }
     const res = await RecipeModel.updateOne({ title }, { $set: { imageUrl } });
     if (res.matchedCount > 0) {
       updated++;
@@ -52,7 +37,12 @@ const run = async () => {
     }
   }
 
-  for (const [name, imageUrl] of Object.entries(categoryImages)) {
+  // Categorías
+  for (const [name, imageUrl] of Object.entries(imagesConfig.categories)) {
+    if (!imageUrl || !imageUrl.trim()) {
+      skipped++;
+      continue;
+    }
     const res = await CategoryModel.updateOne({ name }, { $set: { imageUrl } });
     if (res.matchedCount > 0) {
       console.log(`🏷️  Categoría: ${name}`);
@@ -61,7 +51,7 @@ const run = async () => {
     }
   }
 
-  console.log(`✅ Listo. ${updated} recetas actualizadas.`);
+  console.log(`✅ Listo. ${updated} actualizadas, ${skipped} sin URL (saltadas).`);
   await mongoose.disconnect();
   process.exit(0);
 };
