@@ -13,6 +13,19 @@ export interface Recipe extends Document {
     unit: string;
   }[];
   difficulty: "EASY" | "MEDIUM" | "HARD"; // Tipado literal estricto
+  mainType?:
+    | "carne"
+    | "pollo"
+    | "pescado"
+    | "verdura"
+    | "legumbre"
+    | "pasta"
+    | "arroz"
+    | "huevo"
+    | "sopa"
+    | "postre"
+    | "otro";
+  isVegetarian?: boolean;
   created_at: Date;
   updatedAt: Date; // Mongoose añade esto automáticamente con timestamps: true
 }

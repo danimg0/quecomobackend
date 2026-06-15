@@ -5,6 +5,8 @@ import recipes from "./recipes.routes";
 import ingredient from "./ingredients.routes";
 import category from "./category.routes";
 import legal from "./legal.routes";
+import deeplinks from "./deeplinks.routes";
+import push from "./push.routes";
 
 // La libreta de rutas de express
 const router = express.Router();
@@ -17,6 +19,8 @@ export default (): express.Router => {
   ingredient(router);
   category(router);
   legal(router);
+  deeplinks(router);
+  push(router);
   // Se regresan las rutas
   return router;
 };

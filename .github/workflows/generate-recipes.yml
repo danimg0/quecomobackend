@@ -1,0 +1,49 @@
+name: Generar recetas con IA
+
+# Genera automáticamente recetas nuevas y las sube a MongoDB.
+# - Lunes y jueves a las 07:00 UTC (~09:00 hora de España).
+# - También se puede lanzar a mano desde la pestaña "Actions" (workflow_dispatch),
+#   indicando cuántas recetas quieres en esa ejecución.
+#
+# Requiere estos GitHub Secrets (Settings -> Secrets and variables -> Actions):
+#   MONGO_URL, GEMINI_API_KEY, IMGBB_API_KEY, GOOGLE_SA_JSON
+
+on:
+  schedule:
+    - cron: "0 7 * * 1,4"
+  workflow_dispatch:
+    inputs:
+      count:
+        description: "Número de recetas a generar"
+        required: false
+        default: "5"
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Escribir credenciales de Google
+        run: echo '${{ secrets.GOOGLE_SA_JSON }}' > /tmp/gcloud-key.json
+
+      - name: Generar recetas
+        env:
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          IMGBB_API_KEY: ${{ secrets.IMGBB_API_KEY }}
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcloud-key.json
+          VERTEX_PROJECT_ID: project-0305ea08-3133-414e-b31
+          # En el cron usa 5; al lanzarlo a mano, lo que pongas en el input.
+          RECIPES_PER_RUN: ${{ github.event.inputs.count || '5' }}
+        run: npm run generate-recipes

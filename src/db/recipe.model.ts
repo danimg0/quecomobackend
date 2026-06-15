@@ -6,6 +6,8 @@ const RecipeSchema = new mongoose.Schema(
     title: { type: String, required: true },
     description: { type: String, required: true },
     duration: { type: Number, required: true },
+    // Nº de comensales al que corresponden las cantidades (para escalar raciones)
+    servings: { type: Number, default: 4 },
     imageUrl: { type: String, required: true },
     steps: { type: [String], required: true },
     ingredients: [
@@ -20,6 +22,37 @@ const RecipeSchema = new mongoose.Schema(
       enum: ["EASY", "MEDIUM", "HARD"],
       required: true,
     },
+    // Tipo principal del plato (para personalizar el feed por gustos).
+    // Opcional para no romper recetas antiguas hasta hacer el backfill.
+    mainType: {
+      type: String,
+      enum: [
+        "carne",
+        "pollo",
+        "pescado",
+        "verdura",
+        "legumbre",
+        "pasta",
+        "arroz",
+        "huevo",
+        "sopa",
+        "postre",
+        "otro",
+      ],
+    },
+    // Apto para vegetarianos (sin carne ni pescado).
+    isVegetarian: { type: Boolean, default: false },
+    // Apto para veganos (vegetariano + sin lácteos, huevo ni miel).
+    isVegan: { type: Boolean, default: false },
+    // Alérgenos/dieta DERIVADOS de los ingredientes (información orientativa).
+    containsGluten: { type: Boolean, default: false },
+    containsLactose: { type: Boolean, default: false },
+    // Heurística "bajo en azúcar" (no es una afirmación médica para diabéticos).
+    lowSugar: { type: Boolean, default: false },
+    // Etiquetas sensoriales para el flujo "por antojo".
+    temperature: { type: String, enum: ["frio", "caliente"] },
+    utensil: { type: String, enum: ["cuchara", "tenedor"] },
+    heartiness: { type: String, enum: ["ligero", "contundente"] },
     categories: {
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
       validate: {

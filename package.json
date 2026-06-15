@@ -16,9 +16,16 @@
     "swagger": "ts-node src/scripts/swagger.ts",
     "seed": "ts-node src/scripts/seed.ts",
     "update-images": "ts-node src/scripts/update-images.ts",
+    "generate-recipes": "ts-node src/scripts/generate-recipes.ts",
+    "reimage-recipes": "ts-node src/scripts/reimage-recipes.ts",
+    "reimage-specific": "ts-node src/scripts/reimage-specific.ts",
+    "tag-recipes": "ts-node src/scripts/tag-recipes.ts",
+    "enrich-recipes": "ts-node src/scripts/enrich-recipes.ts",
+    "regen-seed": "ts-node src/scripts/regen-seed.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@google/genai": "^2.8.0",
     "body-parser": "^2.2.1",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
