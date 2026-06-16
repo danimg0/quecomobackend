@@ -20,6 +20,7 @@
     "reimage-recipes": "ts-node src/scripts/reimage-recipes.ts",
     "reimage-specific": "ts-node src/scripts/reimage-specific.ts",
     "tag-recipes": "ts-node src/scripts/tag-recipes.ts",
+    "regen-steps": "ts-node src/scripts/regen-steps.ts",
     "enrich-recipes": "ts-node src/scripts/enrich-recipes.ts",
     "regen-seed": "ts-node src/scripts/regen-seed.ts",
     "test": "echo \"Error: no test specified\" && exit 1"

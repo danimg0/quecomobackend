@@ -6,7 +6,7 @@ name: Generar recetas con IA
 #   indicando cuántas recetas quieres en esa ejecución.
 #
 # Requiere estos GitHub Secrets (Settings -> Secrets and variables -> Actions):
-#   MONGO_URL, GEMINI_API_KEY, IMGBB_API_KEY, GOOGLE_SA_JSON
+#   MONGO_URL, IMGBB_API_KEY, GOOGLE_SA_JSON
 
 on:
   schedule:
@@ -40,7 +40,6 @@ jobs:
       - name: Generar recetas
         env:
           MONGO_URL: ${{ secrets.MONGO_URL }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           IMGBB_API_KEY: ${{ secrets.IMGBB_API_KEY }}
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcloud-key.json
           VERTEX_PROJECT_ID: project-0305ea08-3133-414e-b31

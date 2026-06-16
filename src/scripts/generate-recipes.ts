@@ -102,8 +102,9 @@ Devuelve SOLO un objeto JSON válido (sin markdown, sin texto extra) con esta fo
 
 Reglas:
 - Entre 4 y 8 ingredientes con cantidades realistas para 2-4 personas.
-- Entre 3 y 6 pasos. Cada paso es UNA sola frase corta con UNA única acción: máximo 18 palabras, que quepa en 1-2 líneas de móvil. PROHIBIDO meter dos o tres frases en un mismo paso o escribir parrafadas. Si una acción es larga, divídela en dos pasos.
-- Lenguaje sencillo y directo, pensado para que lo entienda cualquiera de 18 a 80 años (incluida gente mayor). Sin tecnicismos de cocina raros; si usas alguno, explícalo en pocas palabras.
+- PASOS: los que la receta necesite DE VERDAD según su complejidad. Para platos SIN cocción real (ensaladas, tostadas, montar un plato, batidos): 3-5 pasos COMO MUCHO. Un plato normal: 5-7. Un guiso o algo elaborado: 7-9. NO inventes pasos de relleno ni alargues una receta sencilla, ni juntes varias fases distintas en un mismo paso. Cada paso cubre UNA fase y explica el CÓMO para que salga bien: el fuego (suave/medio/fuerte), el tiempo aproximado ("unos 5 min") y una pista visual o sensorial para saber cuándo está ("hasta que la cebolla esté transparente", "hasta que se dore", "hasta que espese"). 1-2 frases, máximo unas 30 palabras por paso. Detallado y realista, pero NUNCA un párrafo largo. Empieza cada paso por la acción (verbo).
+- Que los pasos tengan sentido tanto para alguien que NO ha cocinado nunca como para quien ya sabe: no des nada por supuesto, pero sin ser condescendiente. Si usas un término de cocina ("pochar", "rehogar", "punto de nieve", "desglasar"), explícalo en pocas palabras la primera vez.
+- Lenguaje sencillo y cercano, pensado para cualquiera de 18 a 80 años (incluida gente mayor).
 - "categories" debe contener SOLO valores de la lista dada.
 - VARIEDAD: cambia el ingrediente principal y el tipo de plato respecto a lo ya existente. Alterna entre carne, pollo, pescado, huevos, legumbres, pasta, arroz, verduras y sopas frías o calientes. NO abuses de las patatas ni repitas el mismo concepto de plato.
 - "imageQuery" SIEMPRE en inglés, describiendo la comida (no la cocina ni utensilios).
