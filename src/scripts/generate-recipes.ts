@@ -5,7 +5,18 @@ import { RecipeModel } from "../db/recipe.model";
 import { IngredientModel } from "../db/ingredient.model";
 import { CategoryModel } from "../db/category.model";
 import { notifyNewRecipes } from "../helpers/push";
+import { DISHES } from "./lib/dishes";
 import { deriveTags } from "./lib/derive-tags";
+
+// Normaliza un título para comparar conceptos (sin acentos, minúsculas, sin signos).
+const normTitle = (t: string) =>
+  t
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9 ]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 
 // =============================================================================
 // Generación automática de recetas con IA (Gemini) + imagen + subida a Mongo.
@@ -75,19 +86,20 @@ const withRetry = async <T>(
   throw lastError;
 };
 
-// Pide a Gemini una receta en JSON, dándole las categorías y los títulos que
-// ya existen para que elija categoría válida y no repita platos.
+// Pide a Gemini la receta de UN plato concreto (de la lista curada). Generar un
+// plato específico —en vez de "inventa una receta"— evita que la IA repita
+// siempre los mismos clásicos con otro nombre.
 const generateRecipeJson = async (
   ai: GoogleGenAI,
+  dish: string,
   categoryNames: string[],
-  existingTitles: string[],
   existingIngredients: string[]
 ): Promise<GeneratedRecipe> => {
-  const prompt = `Eres un chef español. Crea UNA receta casera, sencilla y tradicional.
+  const prompt = `Eres un chef. Escribe la receta casera de "${dish}".
 
 Devuelve SOLO un objeto JSON válido (sin markdown, sin texto extra) con esta forma exacta:
 {
-  "title": "string (en español, conciso)",
+  "title": "${dish}",
   "description": "string (1-2 frases apetitosas)",
   "duration": number (minutos totales),
   "servings": number (nº de comensales al que corresponden las cantidades, normalmente 4),
@@ -106,10 +118,9 @@ Reglas:
 - Que los pasos tengan sentido tanto para alguien que NO ha cocinado nunca como para quien ya sabe: no des nada por supuesto, pero sin ser condescendiente. Si usas un término de cocina ("pochar", "rehogar", "punto de nieve", "desglasar"), explícalo en pocas palabras la primera vez.
 - Lenguaje sencillo y cercano, pensado para cualquiera de 18 a 80 años (incluida gente mayor).
 - "categories" debe contener SOLO valores de la lista dada.
-- VARIEDAD: cambia el ingrediente principal y el tipo de plato respecto a lo ya existente. Alterna entre carne, pollo, pescado, huevos, legumbres, pasta, arroz, verduras y sopas frías o calientes. NO abuses de las patatas ni repitas el mismo concepto de plato.
 - "imageQuery" SIEMPRE en inglés, describiendo la comida (no la cocina ni utensilios).
-- INGREDIENTES: reutiliza SIEMPRE el nombre EXACTO de esta lista cuando el ingrediente exista en ella (no inventes variantes como "Huevo" si ya existe "Huevos", ni "Dientes de ajo" si ya existe "Ajo"). Usa nombres genéricos y en singular/plural tal cual aparecen. Lista de ingredientes existentes: ${existingIngredients.join(", ")}. Solo crea un nombre nuevo si de verdad no encaja ninguno.
-- NO repitas ninguno de estos platos ya existentes: ${existingTitles.join(", ") || "(ninguno)"}.`;
+- "title" debe ser EXACTAMENTE "${dish}".
+- INGREDIENTES: reutiliza SIEMPRE el nombre EXACTO de esta lista cuando el ingrediente exista en ella (no inventes variantes como "Huevo" si ya existe "Huevos", ni "Dientes de ajo" si ya existe "Ajo"). Usa nombres genéricos y en singular/plural tal cual aparecen. Lista de ingredientes existentes: ${existingIngredients.join(", ")}. Solo crea un nombre nuevo si de verdad no encaja ninguno.`;
 
   const response = await withRetry(
     () =>
@@ -248,26 +259,34 @@ const run = async () => {
     await IngredientModel.find({ owner: null }, "name")
   ).map((i) => i.name as string);
 
+  // De la lista curada, elegimos platos que NO estén ya en la BD (comparando
+  // normalizado). Así no se repiten conceptos y hay variedad real.
+  const existingNorm = new Set(existingTitles.map(normTitle));
+  const available = DISHES.filter((d) => !existingNorm.has(normTitle(d)));
+  // Barajamos para variar el orden entre ejecuciones
+  for (let i = available.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [available[i], available[j]] = [available[j], available[i]];
+  }
+  const toGenerate = available.slice(0, RECIPES_PER_RUN);
+  if (toGenerate.length === 0) {
+    console.log("✅ No quedan platos nuevos de la lista por generar.");
+  }
+
   let created = 0;
-  for (let i = 0; i < RECIPES_PER_RUN; i++) {
-    console.log(`\n🍳 Receta ${i + 1}/${RECIPES_PER_RUN}...`);
+  for (let i = 0; i < toGenerate.length; i++) {
+    const dish = toGenerate[i];
+    console.log(`\n🍳 (${i + 1}/${toGenerate.length}) ${dish}...`);
     try {
       const recipe = await generateRecipeJson(
         ai,
+        dish,
         categoryNames,
-        existingTitles,
         existingIngredients
       );
 
-      // Anti-duplicado defensivo (por si la IA ignora la instrucción)
-      if (
-        existingTitles.some(
-          (t) => t.toLowerCase() === recipe.title.trim().toLowerCase()
-        )
-      ) {
-        console.log(`   ⏭️  "${recipe.title}" ya existe, salto.`);
-        continue;
-      }
+      // El título canónico es el de la lista (dedup fiable a futuro)
+      recipe.title = dish;
       console.log(`   📝 ${recipe.title}`);
 
       // Mapear categorías (nombres -> ObjectId). Filtra las que no existan.
@@ -343,7 +362,7 @@ const run = async () => {
     }
   }
 
-  console.log(`\n✅ Listo. ${created}/${RECIPES_PER_RUN} recetas creadas.`);
+  console.log(`\n✅ Listo. ${created}/${toGenerate.length} recetas creadas.`);
 
   // Aviso push a los dispositivos suscritos (si se ha creado alguna receta)
   if (created > 0) {
