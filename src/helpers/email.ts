@@ -1,11 +1,34 @@
-// Envío de emails transaccionales vía Resend (https://resend.com).
+// Envío de emails transaccionales vía Brevo (https://brevo.com) por SMTP.
+// Plan gratis: 300 emails/día, a CUALQUIER destinatario y sin dominio propio.
 //
-// MODO PRUEBA: sin un dominio propio verificado, Resend solo permite enviar
-// al correo del dueño de la cuenta (los demás devuelven 403). Cuando haya
-// dominio, basta con verificarlo en Resend y cambiar el remitente de abajo.
+// Se usa SMTP (nodemailer) y no la API REST a propósito: la API bloquea las
+// IPs no reconocidas y el servidor (Railway) cambia de IP; el SMTP no tiene
+// esa restricción. El remitente debe estar verificado en Brevo (el email de
+// la cuenta lo está automáticamente).
 
-const RESEND_URL = "https://api.resend.com/emails";
-const FROM = "QueComo <onboarding@resend.dev>";
+import nodemailer from "nodemailer";
+
+const FROM_NAME = "QueComo";
+const FROM_EMAIL = "daniel.martos@hotmail.com";
+
+// Transporte SMTP de Brevo (perezoso: se crea en el primer envío)
+let cachedTransporter: nodemailer.Transporter | null = null;
+const getTransporter = (): nodemailer.Transporter | null => {
+  const login = process.env.BREVO_SMTP_LOGIN;
+  const key = process.env.BREVO_SMTP_KEY;
+  if (!login || !key) {
+    console.warn("⚠️  BREVO_SMTP_LOGIN/KEY no configurados: no se envía email");
+    return null;
+  }
+  if (!cachedTransporter) {
+    cachedTransporter = nodemailer.createTransport({
+      host: "smtp-relay.brevo.com",
+      port: 587,
+      auth: { user: login, pass: key },
+    });
+  }
+  return cachedTransporter;
+};
 
 // Plantilla del email de verificación: código grande y claro, sin florituras.
 const verificationHtml = (code: string) => `
@@ -43,31 +66,15 @@ const sendEmail = async (
   subject: string,
   html: string
 ): Promise<boolean> => {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) {
-    console.warn("⚠️  RESEND_API_KEY no configurada: no se envía email");
-    return false;
-  }
+  const transporter = getTransporter();
+  if (!transporter) return false;
   try {
-    const res = await fetch(RESEND_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: FROM,
-        to: [to],
-        subject,
-        html,
-      }),
+    await transporter.sendMail({
+      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+      to,
+      subject,
+      html,
     });
-    if (!res.ok) {
-      console.warn(
-        `⚠️  Resend ${res.status}: ${(await res.text()).slice(0, 200)}`
-      );
-      return false;
-    }
     return true;
   } catch (e) {
     console.warn("⚠️  Error enviando email:", (e as Error).message);
