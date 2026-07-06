@@ -1,0 +1,39 @@
+name: Backup de MongoDB
+
+# Copia de seguridad semanal de la base de datos (domingos 05:00 UTC).
+# El volcado se guarda como artefacto del workflow (30 días de retención):
+# GitHub -> Actions -> ejecución -> "Artifacts" para descargarlo.
+# Restaurar: mongorestore --uri "$MONGO_URL" --archive=backup.archive --gzip
+# También se puede lanzar a mano desde la pestaña Actions (workflow_dispatch).
+
+on:
+  schedule:
+    - cron: "0 5 * * 0"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instalar mongodump
+        run: |
+          wget -q https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.9.4.deb
+          sudo apt-get install -y ./mongodb-database-tools-ubuntu2204-x86_64-100.9.4.deb
+
+      - name: Volcar la base de datos
+        run: mongodump --uri "${{ secrets.MONGO_URL }}" --archive=backup.archive --gzip
+
+      - name: Comprobar que el volcado no está vacío
+        run: |
+          size=$(stat -c%s backup.archive)
+          echo "Tamaño del backup: ${size} bytes"
+          if [ "$size" -lt 10000 ]; then
+            echo "::error::El backup parece vacío (${size} bytes)"; exit 1
+          fi
+
+      - name: Guardar copia (artefacto, 30 días)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mongo-backup-${{ github.run_number }}
+          path: backup.archive
+          retention-days: 30
