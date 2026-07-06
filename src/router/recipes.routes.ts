@@ -6,10 +6,11 @@ import {
   getRecipesFromCategory,
   getRecipeByIdC, // Asegúrate de exportar e importar esto correctamente
 } from "../controllers/recipes.controller";
+import { isAuthenticated } from "../middlewares";
 
 export default (router: express.Router) => {
-  // --- CREAR ---
-  router.post("/recipes", (req, res) => {
+  // --- CREAR --- (solo autenticados; antes cualquiera podía crear recetas)
+  router.post("/recipes", isAuthenticated, (req, res) => {
     // #swagger.tags = ['Recetas']
     // #swagger.summary = 'Publicar nueva receta'
     /* #swagger.parameters['body'] = {

@@ -88,6 +88,10 @@ export const getRecipes = (limit: number = 10, page: number = 0) =>
 export const getRecipeById = (id: string) =>
   RecipeModel.findById(id).populate("ingredients.ingredient", "_id name owner");
 
+// Escapa los caracteres especiales de regex del texto del usuario (evita
+// inyección de patrones/ReDoS al buscar)
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 // GET recetas filtradas
 export const getRecipesByFilters = (filters: {
   title?: string;
@@ -97,7 +101,8 @@ export const getRecipesByFilters = (filters: {
 }) => {
   const query: any = {};
   // El options hace que sea case insensitive
-  if (filters.title) query.title = { $regex: filters.title, $options: "i" };
+  if (filters.title)
+    query.title = { $regex: escapeRegex(filters.title), $options: "i" };
   if (filters.difficulty) query.difficulty = filters.difficulty;
 
   // Rango de duración (minutos)

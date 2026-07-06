@@ -22,11 +22,26 @@ const verificationHtml = (code: string) => `
     </p>
   </div>`;
 
-// Envía el código de verificación. Devuelve true si Resend lo aceptó.
-// Nunca lanza: un fallo de email no debe tumbar el registro.
-export const sendVerificationEmail = async (
+const passwordResetHtml = (code: string) => `
+  <div style="font-family: Arial, Helvetica, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+    <h1 style="color: #F97316; margin-bottom: 4px;">QueComo 🥘</h1>
+    <h2 style="margin-top: 0;">Restablecer contraseña</h2>
+    <p>Alguien (esperamos que tú) ha pedido cambiar la contraseña de tu cuenta.
+    Usa este código en la app:</p>
+    <p style="font-size: 36px; font-weight: bold; letter-spacing: 8px; background: #FFF7ED; padding: 16px 24px; border-radius: 12px; text-align: center;">
+      ${code}
+    </p>
+    <p style="color: #6B7280; font-size: 13px;">
+      El código caduca en 15 minutos. Si no has sido tú, ignora este mensaje:
+      tu contraseña seguirá igual.
+    </p>
+  </div>`;
+
+// Envío genérico a Resend. Nunca lanza: un fallo de email no debe tumbar nada.
+const sendEmail = async (
   to: string,
-  code: string
+  subject: string,
+  html: string
 ): Promise<boolean> => {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
@@ -43,8 +58,8 @@ export const sendVerificationEmail = async (
       body: JSON.stringify({
         from: FROM,
         to: [to],
-        subject: `${code} es tu código de QueComo`,
-        html: verificationHtml(code),
+        subject,
+        html,
       }),
     });
     if (!res.ok) {
@@ -59,3 +74,15 @@ export const sendVerificationEmail = async (
     return false;
   }
 };
+
+// Código de verificación de correo (registro)
+export const sendVerificationEmail = (to: string, code: string) =>
+  sendEmail(to, `${code} es tu código de QueComo`, verificationHtml(code));
+
+// Código para restablecer la contraseña
+export const sendPasswordResetEmail = (to: string, code: string) =>
+  sendEmail(
+    to,
+    `${code} — restablece tu contraseña de QueComo`,
+    passwordResetHtml(code)
+  );

@@ -6,7 +6,10 @@ import {
 import express from "express";
 import { OAuth2Client } from "google-auth-library";
 import { authentication, random } from "../helpers";
-import { sendVerificationEmail } from "../helpers/email";
+import {
+  sendPasswordResetEmail,
+  sendVerificationEmail,
+} from "../helpers/email";
 
 // Cliente OAuth para verificar los ID tokens que manda la app.
 // GOOGLE_WEB_CLIENT_ID = Client ID de tipo "Web" de Google Cloud Console.
@@ -222,7 +225,7 @@ export const verifyEmail = async (
     }
 
     const user = await getUserByEmail(email).select(
-      "+verification.code +verification.expiresAt"
+      "+verification.code +verification.expiresAt +verification.attempts"
     );
     // Respuesta genérica: no revelamos si el email existe o no
     if (!user) {
@@ -235,7 +238,15 @@ export const verifyEmail = async (
     }
 
     const v: any = user.verification;
+    // Anti fuerza bruta: a los 5 fallos el código queda invalidado
+    if ((v?.attempts ?? 0) >= 5) {
+      return res.status(429).json({
+        message: "Demasiados intentos. Pide un código nuevo.",
+      });
+    }
     if (!v?.code || v.code !== String(code).trim()) {
+      user.set("verification.attempts", (v?.attempts ?? 0) + 1);
+      await user.save();
       return res.status(400).json({ message: "Código incorrecto" });
     }
     if (v.expiresAt && new Date(v.expiresAt).getTime() < Date.now()) {
@@ -298,6 +309,108 @@ export const resendVerification = async (
     return res
       .status(200)
       .json({ message: "Si la cuenta existe, hemos enviado un código" });
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(400);
+  }
+};
+
+// POST /auth/forgot-password { email } -> envía código para restablecer la
+// contraseña. Respuesta siempre genérica (no revela si el email existe).
+export const forgotPassword = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Faltan datos" });
+    }
+    const generic = {
+      message: "Si la cuenta existe, hemos enviado un código a ese correo",
+    };
+
+    const user = await getUserByEmail(email).select("+passwordReset.sentAt");
+    if (!user) return res.status(200).json(generic);
+
+    // Cooldown de reenvío
+    const lastSent = (user.passwordReset as any)?.sentAt
+      ? new Date((user.passwordReset as any).sentAt).getTime()
+      : 0;
+    if (Date.now() - lastSent < RESEND_COOLDOWN_MS) {
+      return res
+        .status(429)
+        .json({ message: "Espera un minuto antes de pedir otro código" });
+    }
+
+    const code = generateVerificationCode();
+    user.set("passwordReset", {
+      code,
+      expiresAt: new Date(Date.now() + VERIFICATION_TTL_MS),
+      sentAt: new Date(),
+    });
+    await user.save();
+    await sendPasswordResetEmail(email, code);
+
+    return res.status(200).json(generic);
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(400);
+  }
+};
+
+// POST /auth/reset-password { email, code, newPassword } -> cambia la
+// contraseña si el código es válido e invalida las sesiones abiertas.
+export const resetPassword = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ message: "Faltan datos" });
+    }
+    if (String(newPassword).length < 4) {
+      return res
+        .status(400)
+        .json({ message: "La contraseña debe tener al menos 4 caracteres" });
+    }
+
+    const user = await getUserByEmail(email).select(
+      "+passwordReset.code +passwordReset.expiresAt +passwordReset.attempts"
+    );
+    if (!user) {
+      return res.status(400).json({ message: "Código incorrecto" });
+    }
+
+    const v: any = user.passwordReset;
+    if ((v?.attempts ?? 0) >= 5) {
+      return res
+        .status(429)
+        .json({ message: "Demasiados intentos. Pide un código nuevo." });
+    }
+    if (!v?.code || v.code !== String(code).trim()) {
+      user.set("passwordReset.attempts", (v?.attempts ?? 0) + 1);
+      await user.save();
+      return res.status(400).json({ message: "Código incorrecto" });
+    }
+    if (v.expiresAt && new Date(v.expiresAt).getTime() < Date.now()) {
+      return res
+        .status(400)
+        .json({ message: "El código ha caducado. Pide uno nuevo." });
+    }
+
+    // Guardamos la contraseña nueva y cerramos las sesiones existentes
+    const salt = random();
+    user.set("authentication.salt", salt);
+    user.set("authentication.password", authentication(salt, newPassword));
+    user.set("authentication.sessionToken", undefined);
+    user.set("passwordReset", undefined);
+    await user.save();
+
+    return res.status(200).json({
+      message: "Contraseña actualizada. Ya puedes iniciar sesión.",
+    });
   } catch (error) {
     console.log(error);
     return res.sendStatus(400);

@@ -5,6 +5,8 @@ import {
   verifyEmail,
   resendVerification,
   googleLogin,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/authentication.controller";
 
 export default (router: express.Router) => {
@@ -48,5 +50,17 @@ export default (router: express.Router) => {
     // #swagger.tags = ['Autenticación']
     // #swagger.summary = 'Reenviar código de verificación'
     resendVerification(req, res);
+  });
+
+  router.post("/auth/forgot-password", (req, res) => {
+    // #swagger.tags = ['Autenticación']
+    // #swagger.summary = 'Pedir código para restablecer contraseña'
+    forgotPassword(req, res);
+  });
+
+  router.post("/auth/reset-password", (req, res) => {
+    // #swagger.tags = ['Autenticación']
+    // #swagger.summary = 'Restablecer contraseña con código'
+    resetPassword(req, res);
   });
 };

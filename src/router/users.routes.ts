@@ -18,14 +18,13 @@ export default (router: express.Router) => {
     deleteMyAccount(req, res);
   });
 
-  router.get(
-    "/users",
-    /* isAuthenticated, */ (req, res) => {
-      // #swagger.tags = ['Usuarios']
-      // #swagger.summary = 'Listar todos los usuarios'
-      getAllUsers(req, res);
-    }
-  );
+  // Listado de usuarios: SOLO autenticados (antes estaba abierto: cualquiera
+  // podía listar emails de todos los usuarios)
+  router.get("/users", isAuthenticated, (req, res) => {
+    // #swagger.tags = ['Usuarios']
+    // #swagger.summary = 'Listar todos los usuarios'
+    getAllUsers(req, res);
+  });
 
   // --- FAVORITOS ---
 
@@ -42,25 +41,21 @@ export default (router: express.Router) => {
     // #swagger.description = 'Añade o quita la receta de favoritos.'
     toggleFavoriteRecipe(req, res);
   });
-  router.delete(
-    `/users/:id`,
-    /* isAuthenticated, isOwner, */ (req, res) => {
-      // #swagger.tags = ['Usuarios']
-      // #swagger.summary = 'Borrar usuario'
-      deleteUser(req, res);
-    }
-  );
+  // Borrar/actualizar usuario: solo el PROPIO usuario (antes estaba abierto:
+  // cualquiera podía borrar o modificar cualquier cuenta)
+  router.delete(`/users/:id`, isAuthenticated, isOwner, (req, res) => {
+    // #swagger.tags = ['Usuarios']
+    // #swagger.summary = 'Borrar usuario'
+    deleteUser(req, res);
+  });
 
-  router.patch(
-    "/users/:id",
-    /* isAuthenticated, isOwner, */ (req, res) => {
-      // #swagger.tags = ['Usuarios']
-      // #swagger.summary = 'Actualizar datos de usuario'
-      /* #swagger.parameters['body'] = {
+  router.patch("/users/:id", isAuthenticated, isOwner, (req, res) => {
+    // #swagger.tags = ['Usuarios']
+    // #swagger.summary = 'Actualizar datos de usuario'
+    /* #swagger.parameters['body'] = {
         in: 'body',
         schema: { $ref: "#/definitions/User" }
     } */
-      updateUser(req, res);
-    }
-  );
+    updateUser(req, res);
+  });
 };

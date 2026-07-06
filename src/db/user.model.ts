@@ -13,6 +13,15 @@ const UserSchema = new mongoose.Schema(
       code: { type: String, select: false },
       expiresAt: { type: Date, select: false },
       sentAt: { type: Date, select: false },
+      // Intentos fallidos: a los 5, el código se invalida (anti fuerza bruta)
+      attempts: { type: Number, select: false, default: 0 },
+    },
+    // Restablecimiento de contraseña ("olvidé mi contraseña"), mismo esquema
+    passwordReset: {
+      code: { type: String, select: false },
+      expiresAt: { type: Date, select: false },
+      sentAt: { type: Date, select: false },
+      attempts: { type: Number, select: false, default: 0 },
     },
     // Login con Google: id de la cuenta (estos usuarios no tienen contraseña)
     googleId: { type: String, index: true, sparse: true },
