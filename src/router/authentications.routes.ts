@@ -1,5 +1,11 @@
 import express from "express";
-import { login, register } from "../controllers/authentication.controller";
+import {
+  login,
+  register,
+  verifyEmail,
+  resendVerification,
+  googleLogin,
+} from "../controllers/authentication.controller";
 
 export default (router: express.Router) => {
   router.post("/auth/register", (req, res) => {
@@ -24,5 +30,23 @@ export default (router: express.Router) => {
         schema: { $ref: "#/definitions/LoginUser" }
     } */
     login(req, res);
+  });
+
+  router.post("/auth/google", (req, res) => {
+    // #swagger.tags = ['Autenticación']
+    // #swagger.summary = 'Login/registro con Google (ID token)'
+    googleLogin(req, res);
+  });
+
+  router.post("/auth/verify", (req, res) => {
+    // #swagger.tags = ['Autenticación']
+    // #swagger.summary = 'Verificar correo con código de 6 dígitos'
+    verifyEmail(req, res);
+  });
+
+  router.post("/auth/resend-verification", (req, res) => {
+    // #swagger.tags = ['Autenticación']
+    // #swagger.summary = 'Reenviar código de verificación'
+    resendVerification(req, res);
   });
 };

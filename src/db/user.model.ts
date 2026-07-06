@@ -7,10 +7,20 @@ const UserSchema = new mongoose.Schema(
     // Datos genericos
     username: { type: String, required: true },
     email: { type: String, required: true, unique: true },
+    // Verificación de correo: código de 6 dígitos con caducidad
+    emailVerified: { type: Boolean, default: false },
+    verification: {
+      code: { type: String, select: false },
+      expiresAt: { type: Date, select: false },
+      sentAt: { type: Date, select: false },
+    },
+    // Login con Google: id de la cuenta (estos usuarios no tienen contraseña)
+    googleId: { type: String, index: true, sparse: true },
     authentication: {
       //select signifina que no se va a devolver ese dato cuando traemos al usuario
-      password: { type: String, required: true, select: false },
-      salt: { type: String, required: true, select: false },
+      // password/salt NO requeridos: los usuarios de Google no tienen contraseña
+      password: { type: String, select: false },
+      salt: { type: String, select: false },
       sessionToken: { type: String, select: false },
     },
     // Array de recetas favoritas del usuario
@@ -33,6 +43,8 @@ export const UserModel = mongoose.model("User", UserSchema);
 // En vez de escribir la consulta en la BD en cada ruta, se escribe aqui una vez y se llama cuando haga falta.
 export const getUsers = () => UserModel.find();
 export const getUserByEmail = (email: string) => UserModel.findOne({ email });
+export const getUserByGoogleId = (googleId: string) =>
+  UserModel.findOne({ googleId });
 export const getUserBySessionToken = (sessionToken: string) =>
   UserModel.findOne({ "authentication.sessionToken": sessionToken });
 export const getUserById = (id: string) => UserModel.findById(id);
